@@ -6,19 +6,13 @@ import colorsys
 import os
 import PIL
 
-PYGAME_OK = True
-try:
-    import pygame
-except ImportError:
-    PYGAME_OK = False
 
-MATPLOT_OK = True
 try:
+    MATPLOT_OK = True
     import matplotlib.pyplot as plt
     import matplotlib.colors
 except ImportError:
     MATPLOT_OK = False
-
 
 
 class Palettes():
@@ -84,12 +78,114 @@ class Palettes():
                     print "loading colormap from %s" % fname
 
 
+class Generator(object):
+    """ Parent class for generator objects. Subclass iter to do the particular calculations"""
+    def __init__(self, size=(40, 40)):
+        self.NX = size[0]
+        self.NY = size[1]
+        random.seed()
+        self.vals = numpy.zeros((self.NX,self.NY))
+        self.count = 0
+        self.init_params()
+
+
+
+
+    def iter(self):
+        print "please subclass me, man!"
+
+    def init_params(self):
+        print "please subclass me, man!"
+
+    def get_frame(self):
+        """ get a list of color vals as floats, no"""
+        return(self.vals.tolist())
+
+    def get_vals(self):
+        return(self.vals)
+
+
+
+class Volterra(Generator):
+    """ Subclass generator to calculate discrete monte-carlo Lotka-Volterra
+    on a grid. """
+
+    def __init__(self, size):
+        #super(Volterra, self).__init__(size)
+        super( Volterra, self ).__init__(size)
+        self.p =0.5 # probability rabbit eaten (becomes fox)
+        self.r =0.5 # probability fox starves
+        self.q = 0.5 # probability rabbit born
+        self.x = 0   # bare
+        self.b = 85  # rabbit
+        self.f = 170 # fox
+
+        for i in range(self.NX):
+            for j in range(self.NY):
+                self.vals[i][j] = random.choice([self.x,self.b,self.f])
+
+
+        
+
+    def iter(self):
+        # for i in range(self.NX):
+        #     for j in range(self.NY):
+        #         self.vals[i][j] = random.choice([self.x,self.b,self.f])
+
+        for i in range(self.NX):
+            x = random.randrange(0,self.NX)
+            y = random.randrange(0,self.NY)
+            xn = x + random.choice([-1,0,1])
+            yn = y + random.choice([-1,0,1])
+
+            if xn < 0: xn = 0
+            if yn < 0: yn = 0
+            if xn >= self.NX: xn = self.NX -1
+            if yn >= self.NY: yn = self.NY -1
+
+            if x != xn or y != yn:
+                
+                #print "XY  %d %d" % (xn, yn)
+                if self.vals[x][y] == self.f: #fox
+                    if self.vals[xn][yn] == self.b: # neighbor is rabbit:
+                        if random.random() > self.p: # eaten, becomes fox
+                            #print "yup"
+                            self.vals[xn][yn] = self.f
+                        else:
+                            pass
+                            #print "nope"
+                        if random.random() > self.r: # fox starves
+                            self.vals[x][y] = self.x
+                elif self.vals[x][y] == self.b: #rabbit
+                    if self.vals[xn][yn] == self.x: # neighbor is bare
+                        if random.random() > self.q: # rabbit born
+                            self.vals[xn][yn] = self.b
+                elif self.vals[x][y] == self.x: #bare
+                    if self.vals[xn][yn] != self.x: # neighbor is populated
+                        # neighbor moves to this square
+                        self.vals[x][y] = self.vals[xn][yn] 
+                        self.vals[xn][yn] = self.x
+            #print "XY  %d %d" % (x, y)                        
+            #self.vals[x][y] == 40 
+
+class RippleTest(Generator):
+    """ Simple test runs through all values to see palette"""
+
+    def __init__(self, size):
+        super(RippleTest, self).__init__(size)
+
+    def iter(self):
+        for i in range(self.NX):
+            for j in range(self.NY):
+                self.vals[i][j] = (self.count + i*self.NX + j) % 255
+        self.count = (self.count + 1) % 255
+
+
 class Colormorph():
 
     def __init__(self, size=(40, 40)):
         self.NX = size[0]
         self.NY = size[1]
-        self.fireSurface = pygame.Surface(size, 0, 8 )      
         random.seed()
         self.vals = numpy.zeros((self.NX,self.NY))
         #self.fireSurface.set_palette(self.cmap1)
@@ -102,11 +198,6 @@ class Colormorph():
         self.count = (self.count + 1) % 255
 
 
-    def getFireSurface(self):
-        self.iter()
-        
-        pygame.surfarray.blit_array(self.fireSurface, self.vals.astype('int'))
-        return self.fireSurface
 
 
 class Ripple():

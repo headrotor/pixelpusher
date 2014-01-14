@@ -7,9 +7,9 @@ pygame based frame to display generative color patterns
 
 import pygame
 from pygame.locals import *
-from pygame.compat import xrange_
 import sys
 import numpy
+from pygame.compat import xrange_
 
 import OPC_server
 
@@ -27,20 +27,19 @@ def show (image):
     screen.fill ((255, 255, 255))
     screen.blit (image, (0, 0))
     pygame.display.flip ()
-    while 1:
-        event = pygame.event.wait ()
-        if event.type == pygame.QUIT:
-            raise SystemExit
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            break
+    #event = pygame.event.wait ()
+    #if event.type == pygame.QUIT:
+    #    raise SystemExit
+    #if event.type == pygame.MOUSEBUTTONDOWN:
+    #    return
 
 
 def pygame_handler(chan,pixels):
     """ get a list of pixels from the OPC server and display them"""
 
-    width = 8
-    height = 5
-    z = 16
+    width = 16
+    height = 16
+    z = 8
 
     screen = pygame.display.get_surface()
     square=pygame.Surface((z, z))
@@ -59,10 +58,10 @@ def pygame_handler(chan,pixels):
             draw_me=pygame.Rect((z*x), (z*y), z, z)
      
             screen.blit(square,draw_me)
-            pygame.display.flip()       
+    pygame.display.flip()       
             #ar[x,y] = p
-
-    #del ar
+    evts = pygame.event.get()
+    del ar
     #show(surface)
 
 
@@ -82,23 +81,22 @@ if __name__ == '__main__':
     opc_server = OPC_server.OPC_Server(OPC_server.OPC_DEFAULT_PORT,
                                        pygame_handler)
 
-    width = 8
-    height = 5
+    width = 16
+    height = 16
 
     #pmap = pygame.PixelArray(screen)
 
 
-    ar = pygame.PixelArray(surface)
-    r, g, b = 0, 0, 0
-    # Do some easy gradient effect.
-    for y in xrange_ (255):
-        r, g, b = y, y, y
-        ar[:,y] = (r, g, b)
-    del ar
+    #ar = pygame.PixelArray(surface)
+    #r, g, b = 0, 0, 0
+    # # Do some easy gradient effect.
+    # for y in xrange_ (255):
+    #     r, g, b = y, y, y
+    #     ar[:,y] = (r, g, b)
+    # del ar
     #print "foo"
     #show(surface)
 
-    print "foo"
     while(1):
         print "waiting"
         opc_server.opc_receive(None,None)
