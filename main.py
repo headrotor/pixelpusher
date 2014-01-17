@@ -8,6 +8,7 @@ import time
 import opc # from github/zestyping
 import generative
 import numpy as np
+import palettes
 
 import scipy.misc.pilutil as smp
 
@@ -20,7 +21,7 @@ size = (16,16)
 ripple = generative.Volterra(size)
 #ripple = generative.RippleTest(size)
 
-p = generative.Palettes()
+p = palettes.Palettes()
 pals = p.get_all()
 
 pal = pals['hsv']

@@ -2,84 +2,16 @@
 import random
 import sys
 import numpy
-import colorsys
-import os
 import PIL
 
 
-try:
-    MATPLOT_OK = True
-    import matplotlib.pyplot as plt
-    import matplotlib.colors
-except ImportError:
-    MATPLOT_OK = False
-
-
-class Palettes():
-
-    def __init__(self):
-        self.qual_names = ['Accent', 'Dark2', 'hsv', 'Paired', 'Pastel1',
-                             'Pastel2', 'Set1', 'Set2', 'Set3', 'spectral']
-
-    def get_all(self):
-        """ generate all palettes and return in a list"""
-        pals = {}
-        if MATPLOT_OK:
-            pals['grayscale'] = self.grayscale()
-
-            for name in self.qual_names:
-                pals[name] = self.get_matplot_cmap(name)
-
-        self.get_all_cmaps("./palettes/",pals)
-            
-        return pals
-
-    def flame(self):
-        gstep, bstep = 75, 150
-        cmap = numpy.zeros((256, 3))
-        cmap[:, 0] = numpy.minimum(numpy.arange(256) * 3, 255)
-        cmap[gstep:, 1] = cmap[:-gstep, 0]
-        cmap[bstep:, 2] = cmap[:-bstep, 0]
-        return cmap  
-
-    def get_matplot_cmap(self,cmap_name):
-        cmap=plt.get_cmap(cmap_name)
-        cmap = cmap(range(256))
-        #print repr(cmap)
-        sys.stdout.flush()
-        return(255*cmap)
-
-
-    def grayscale(self):
-        """grayscale """
-        segmentdata = { 'red': [(0.0, 0.0, 0.0),
-                                (1.0, 255.0, 255.0)],
-                        'green': [(0.0, 0.0, 0.0),
-                                (1.0, 255.0, 255.0)],
-                        'blue': [(0.0, 0.0, 0.0),
-                                (1.0, 255.0, 255.0)]}
-
-
-        cmap = matplotlib.colors.LinearSegmentedColormap('foo',segmentdata)
-        return [ cmap(1.*i/256) for i in range(256)]
-
-
-    def get_all_cmaps(self,imgdir,cmap_list): 
-       
-        for f in os.listdir(imgdir):
-            fname = os.path.join(imgdir, f)
-            print fname
-            if os.path.isfile(fname):
-                base, ext = os.path.splitext(os.path.basename(fname))
-          #base = os.path.basename(fname)
-                print " b: %s e: %s" % (base, ext)
-                if ext.lower() == '.png':
-                    cmap_list[base] = self.get_cmap_image(fname)
-                    print "loading colormap from %s" % fname
-
+# local classes
+import palettes
 
 class Generator(object):
-    """ Parent class for generator objects. Subclass iter to do the particular calculations"""
+    """ Parent class for grid  pattern generator objects. Like Dr. Bronner says,
+    Subclass! Subclass! Subclass!"""
+
     def __init__(self, size=(40, 40)):
         self.NX = size[0]
         self.NY = size[1]
@@ -209,7 +141,7 @@ class Ripple():
         self.NY = size[1]
         #self.fireSurface = pygame.Surface(size, 0, 8 )      
         #random.seed()
-        #P = Palettes()
+        #P = palettes.Palettes()
         #self.cmap1 = P.get_cmap('Pastel1')
         #print repr(self.cmap1)
         
@@ -300,7 +232,7 @@ class WaveEqn():
 
 
         #self.fireSurface = pygame.Surface(size, 0, 8 )      
-        #P = Palettes()
+        #P = palettes.Palettes()
         #self.cmap1 = P.get_cmap('Pastel1')
         #self.fireSurface.set_palette(self.cmap1)
         random.seed()
@@ -390,6 +322,8 @@ class WaveEqn():
 
 
 class CheezFlame:
+    """ Make the chee- um, classic flame effect
+    Shamelessly pilfered from http://www.pygame.org/pcr/numpy_flames/"""
     def __init__(self, size=(40, 40), coolingFactor=5, fuelRange=(-31, 32)):
         self.__width, self.__height = size
         self.coolingFactor = coolingFactor
@@ -397,7 +331,8 @@ class CheezFlame:
 
         self.__array = numpy.zeros((self.__width, self.__height))
         self.__fireSurface = pygame.Surface((self.__width, self.__height), 0, 8)
-        P = Palettes()
+        #P = palettes.Palettes()
+
         self.cmap1 = P.get_cmap('Pastel1')
         self.__fireSurface.set_palette(self.cmap1)
 
@@ -408,6 +343,8 @@ class CheezFlame:
 
 
     def getFireSurface(self):
+        """ get pygame surface, obsolete"""
+
         tempArray = numpy.zeros(self.__array.shape)
         for r in range(0, self.__width):
             for c in range(0, self.__height):
