@@ -111,17 +111,28 @@ class Palettes():
         cmap = np.zeros((self.length, 3))
         rgb = self.uint8_to_float([h,s,v])
         # line through through HSV space
-        noise = self.smoothed_noise(self.length)
+        h_noise = self.smoothed_noise(self.length)
+        s_noise = self.smoothed_noise(self.length)
+        # should maybe detrend noise arrays but can't be bothered
         for i in range(self.length):
             rh = h
+            rs = s
             if wobble > 0:
-                rh += wobble*(noise[i])
+                # give hue a random offset
+                rh += wobble*(h_noise[i])
                 if rh < 0.0:
                     rh += 1.0
                 elif rh > 1.0:
                     rh -= 1.0
-            rgb = colorsys.hsv_to_rgb(rh, s, float(i/255.0))
-            print repr(rh)
+
+                # give saturation a random offset
+                rs += wobble*(s_noise[i])/2.0
+                if rs < 0.0:
+                    rs  = 0.0
+                elif rs > 1.0:
+                    rs = 1.0
+            rgb = colorsys.hsv_to_rgb(rh, rs, float(i/255.0))
+            print repr(rs)
             cmap[i, 0] = 255*rgb[0]
             cmap[i, 1] = 255*rgb[1]
             cmap[i, 2] = 255*rgb[2]
@@ -130,7 +141,6 @@ class Palettes():
             #cmap[i, 2] = 255*(noise[i] + 0.5)
         
         return cmap
-
 
     def palette_from_rgb(self,rgb_ints):
         cmap = np.zeros((self.length, 3))
@@ -156,7 +166,7 @@ class Palettes():
         return self.smooth(noise_arr)
 
     def smooth(self,x,window_len=15,window='hanning'):
-        """smooth the data using a window with requested size. 
+        """smooth a data array using a window with requested size. 
         from http://wiki.scipy.org/Cookbook/SignalSmooth """
         if x.ndim != 1:
             raise ValueError, "smooth only accepts 1 dimension arrays."
